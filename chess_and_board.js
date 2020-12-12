@@ -8,9 +8,8 @@ function onDragStart (source, piece, position, orientation) {
     // do not pick up pieces if the game is over
     if (game.game_over()) return false
 
-    // only pick up pieces for the side to move
-    if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-        (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+    // only pick up white pieces for the side to move
+    if ((game.turn() === 'w' && piece.search(/^b/) !== -1)) {
         return false
     }
 }
@@ -27,6 +26,7 @@ function onDrop (source, target) {
     if (move === null) return 'snapback'
 
     updateStatus()
+    window.setTimeout(moveAI, 250)
 }
 
 // update the board position after the piece snap
@@ -76,17 +76,5 @@ var config = {
     onSnapEnd: onSnapEnd
 }
 
-function resetBoard() {
-    game.reset()
-    board.position(game.fen())
-    updateStatus()
-}
-
-function undoBoard() {
-    game.undo()
-    board.position(game.fen())
-    updateStatus()
-}
-
-board = Chessboard('myBoard', config)
-updateStatus()
+board = Chessboard('myBoard', config);
+updateStatus();
