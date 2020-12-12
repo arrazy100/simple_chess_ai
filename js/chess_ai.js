@@ -166,15 +166,9 @@ function negaMax(is_max_player, alpha, beta, depth) {
     const moves = game.moves(); // mendapatkan semua gerakan yang valid
     //childNodes := orderMoves(childNodes)
     var value = -99999; // nilai minimum
-    var player_color = is_max_player ? 'w' : 'b'; // mendapatkan warna pemain, jika max (putih), jika min (hitam)
 
     for (var i = 0; i < moves.length; i++) {
-        var move = game.move(moves[i]); // lakukan pergerakan
-        // lewati jika bukan giliran pemain
-        if (move.color !== player_color) {
-            game.undo(); // kembalikan pergerakan
-            continue;
-        }
+        game.move(moves[i]); // lakukan pergerakan
         value = Math.max(value, -negaMax(-is_max_player, -beta, -alpha, depth - 1)); // ambil nilai yang lebih tinggi antara value dan negamax
         alpha = Math.max(alpha, value); // ambil nilai yang lebih tinggi antara alpha dan value
         game.undo(); // kembalikan pergerakan
@@ -195,7 +189,11 @@ function getBestMoveFromNegaMax() {
 
     for (var i = 0; i < moves.length; i++) {
         var move = game.move(moves[i]); // gerakkan pemain
-        var score = negaMax(-1, -99999, 99999, 3) + evaluatePosition(move, -1); // hitung nilai negamax + nilai posisi pergerakan
+        if (move.color === 'w') {
+            game.undo();
+            continue;
+        }
+        var score = negaMax(-1, -99999, 99999, 2) + evaluatePosition(move, -1); // hitung nilai negamax + nilai posisi pergerakan
         
         // simpan pergerakan terbaik jika score lebih dari nilai terbaik
         if (score > bestValue) {
