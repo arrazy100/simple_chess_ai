@@ -1,5 +1,5 @@
 // fungsi untuk menghitung nilai material pada papan catur
-function evaluateMaterial() {
+function evaluateScore() {
 
     // nilai untuk semua jenis pion catur, diambil dari https://www.chessprogramming.org/Point_Value
     const pawn = 100;
@@ -9,53 +9,6 @@ function evaluateMaterial() {
     const queen = 1000;
     const king = 10000;
 
-    const boards = game.board();
-    var materialValue = 0; // membuat variabel baru untuk nilai material
-
-    // baca board untuk menghitung nilai material
-    // tambahkan nilai materai untuk warna putih dan kurangi nilai material untuk setiap warna hitam
-    for (var i = 0; i < 8; i++) {
-        for (var j = 0; j < 8; j++) {
-            if (boards[i][j] === null) continue;
-            var piece = boards[i][j]
-            if (piece.type === 'p') piece.color === 'w' ? materialValue += pawn : materialValue -= pawn;
-            if (piece.type === 'n') piece.color === 'w' ? materialValue += knight : materialValue -= knight;
-            if (piece.type === 'b') piece.color === 'w' ? materialValue += bishop : materialValue -= bishop;
-            if (piece.type === 'r') piece.color === 'w' ? materialValue += rook : materialValue -= rook;
-            if (piece.type === 'q') piece.color === 'w' ? materialValue += queen : materialValue -= queen;
-            if (piece.type === 'k') piece.color === 'w' ? materialValue += king : materialValue -= king;
-        }
-    }
-
-    return materialValue;
-}
-
-// fungsi untuk mendapatkan nilai indeks untuk fungsi evaluateFunction
-function getArrayIndex(to) {
-    var index = 0; // variabel untuk menyimpan nilai indeks
-    for (var i = 0; i < to.length; i++) {
-        if (to[i] >= '0' && to[i] <= '9') { // char adalah angka
-            index += (to[i] - 1) * 8; // tambahkan indeks dengan (angka - 1) * 8
-            continue;
-        }
-        // mendapatkan nilai kolom array
-        switch(to[i]) {
-            case 'a': index = 0; break;
-            case 'b': index = 1; break;
-            case 'c': index = 2; break;
-            case 'd': index = 3; break;
-            case 'e': index = 4; break;
-            case 'f': index = 5; break;
-            case 'g': index = 6; break;
-            case 'h': index = 7; break;
-        }
-    }
-
-    return index;
-}
-
-// fungsi untuk menghitung nilai posisi pergerakan yang dilakukan
-function evaluatePosition(move, is_max_player) {
     const pawnPosition = [
         0,  0,  0,  0,  0,  0,  0,  0,
         50, 50, 50, 50, 50, 50, 50, 50,
@@ -92,11 +45,11 @@ function evaluatePosition(move, is_max_player) {
     const rookPosition = [
         0,  0,  0,  0,  0,  0,  0,  0,
         5, 10, 10, 10, 10, 10, 10,  5,
-       -5,  0,  0,  0,  0,  0,  0, -5,
-       -5,  0,  0,  0,  0,  0,  0, -5,
-       -5,  0,  0,  0,  0,  0,  0, -5,
-       -5,  0,  0,  0,  0,  0,  0, -5,
-       -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
         0,  0,  0,  5,  5,  0,  0,  0
     ];
 
@@ -122,93 +75,103 @@ function evaluatePosition(move, is_max_player) {
         20, 30, 10,  0,  0, 10, 30, 20
     ];
 
-    var score = 0; // variabel untuk menyimpan skor
-    var index = getArrayIndex(move.to); // mendapatkan nilai index array dari pergerakan yang dilakukan
-    var piece = move.piece; // mendapatkan tipe catur
+    var n_pawn = 0;
+    var n_knight = 0;
+    var n_bishop = 0;
+    var n_rook = 0;
+    var n_queen = 0;
+    var n_king = 0;
+    var total_pieces = 0;
 
-    // tipe piece, p (pawn), n (knight), b (bishop), r (rook), q (queen), dan king (king)
-    // jika pemain max, score = position[index], jika pemain min, score = position.reverse()[index]
-    switch(piece) {
-        case 'p':
-            if (is_max_player) score = pawnPosition[index];
-            else score = pawnPosition.reverse()[index];
-            break;
-        case 'n':
-            if (is_max_player) score = knightPosition[index];
-            else score = knightPosition.reverse()[index];
-            break;
-        case 'b':
-            if (is_max_player) score = bishopPosition[index];
-            else score = bishopPosition.reverse()[index];
-            break;
-        case 'r':
-            if (is_max_player) score = rookPosition[index];
-            else score = rookPosition.reverse()[index];
-            break;
-        case 'q':
-            if (is_max_player) score = queenPosition[index];
-            else score = queenPosition.reverse()[index];
-            break;
-        case 'k':
-            if (is_max_player) score = kingPosition[index];
-            else score = kingPosition.reverse()[index];
-            break;
+    const board = game.board();
+    var score = 0; // membuat variabel baru untuk nilai material
+
+    // baca board untuk menghitung nilai material
+    // tambahkan nilai materai untuk warna putih dan kurangi nilai material untuk setiap warna hitam
+    for (var i = 0; i < 8; i++) {
+        for (var j = 0; j < 8; j++) {
+            var piece = board[i][j];
+            if (piece === null) continue;
+            var w_index = (i * 8) + j;
+            var b_index = 63 - w_index;
+            switch(piece.type) {
+                case 'p': // pawn
+                    score += (piece.color === 'w') ? pawnPosition[w_index] : pawnPosition[b_index];
+                    n_pawn++;
+                    break;
+                case 'n': // knight
+                    score += (piece.color === 'w') ? knightPosition[w_index] : knightPosition[b_index];
+                    n_knight++;
+                    break;
+                case 'b': // bishop
+                    score += (piece.color === 'w') ? bishopPosition[w_index] : bishopPosition[b_index];
+                    n_bishop++;
+                    break;
+                case 'r': // rook
+                    score += (piece.color === 'w') ? rookPosition[w_index] : rookPosition[b_index];
+                    n_rook++;
+                    break;
+                case 'q': // queen
+                    score += (piece.color === 'w') ? queenPosition[w_index] : queenPosition[b_index];
+                    n_queen++;
+                    break;
+                case 'k': // king
+                    score += (piece.color === 'w') ? kingPosition[w_index] : kingPosition[b_index];
+                    n_king++;
+                    break;
+            }
+        }
     }
+    total_pieces = n_pawn + n_knight + n_bishop + n_rook + n_queen + n_king;
+    $("#total_pieces").text(total_pieces);
 
     return score;
 }
 
-// fungsi untuk menghitung nilai pergerakan terbaik menggunakan algoritma negamax
-function negaMax(is_max_player, alpha, beta, depth) {
+function negamax(game, is_max_player, alpha, beta, depth) {
+    count++;
+    if (depth === 0) return evaluateScore() * is_max_player;
 
-    if (depth === 0) return (evaluateMaterial() * is_max_player);
-
-    const moves = game.moves(); // mendapatkan semua gerakan yang valid
-    //childNodes := orderMoves(childNodes)
-    var value = -99999; // nilai minimum
-
+    var bestScore = -99999;
+    const moves = game.moves();
     for (var i = 0; i < moves.length; i++) {
-        game.move(moves[i]); // lakukan pergerakan
-        value = Math.max(value, -negaMax(-is_max_player, -beta, -alpha, depth - 1)); // ambil nilai yang lebih tinggi antara value dan negamax
-        alpha = Math.max(alpha, value); // ambil nilai yang lebih tinggi antara alpha dan value
-        game.undo(); // kembalikan pergerakan
-
-        if (alpha >= beta) {
-            break;
-        }
+        var newGame = new Chess(game.fen());
+        newGame.move(moves[i]);
+        var score = -negamax(newGame, -is_max_player, -beta, -alpha, depth - 1);
+        delete newGame;
+        bestScore = Math.max(bestScore, score);
+        alpha = Math.max(alpha, bestScore);
+        if (alpha >= beta) break;
     }
-
-    return alpha;
+    return bestScore;
 }
 
-// fungsi untuk mendapatkan pergerakan terbaik, diambil dari nilai negamax
-function getBestMoveFromNegaMax() {
-    var bestValue = -99999; // nilai terbaik
-    var bestMove = 0; // pergerakan terbaik
-    const moves = game.moves(); // mendapatkan gerakan yang valid
+var count;
+function negamaxRoot(is_max_player, depth) {
+    count = 0;
+    const moves = game.moves();
+    var bestScore = -99999;
+    var bestMove;
 
     for (var i = 0; i < moves.length; i++) {
-        var move = game.move(moves[i]); // gerakkan pemain
-        if (move.color === 'w') {
-            game.undo();
-            continue;
-        }
-        var score = negaMax(-1, -99999, 99999, 2) + evaluatePosition(move, -1); // hitung nilai negamax + nilai posisi pergerakan
-        
-        // simpan pergerakan terbaik jika score lebih dari nilai terbaik
-        if (score > bestValue) {
-            bestValue = score;
+        var newGame = new Chess(game.fen());
+        newGame.move(moves[i]);
+        var score = -negamax(newGame, -is_max_player, -99999, 99999, depth - 1);
+        delete newGame;
+
+        if (score >= bestScore) {
+            bestScore = score;
             bestMove = moves[i];
         }
-        game.undo(); // kembalikan pergerakan
     }
     return bestMove;
 }
 
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var move = getBestMoveFromNegaMax(); // mendapatkan gerakan
+    var move = negamaxRoot(1, 3); // mendapatkan gerakan
     game.move(move); // menggerakkan AI
     board.position(game.fen()); // perbarui tampilan papan catur
     updateStatus(); // update status papan catur
+    $("#execution").text(count);
 }
