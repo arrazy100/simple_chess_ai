@@ -21,8 +21,8 @@ function startEngine(push = true) {
             board.position(e.data[0]);
             updateStatus();
             $('#execution').text(e.data[1]);
-            total_time += ((end - start) / 1000).toFixed(2);
-            $('#time').text(((end - start) / 1000).toFixed(2) + ' s');
+            total_time += Math.round((end - start) / 10) / 100;
+            $('#time').text(Math.round((end - start) / 10) / 100 + ' s');
             index++;
             $('#mean').text(total_time / index + ' s');
         };
@@ -78,12 +78,12 @@ function updateStatus () {
 
     // checkmate?
     if (game.in_checkmate()) {
-        status = 'Game over, ' + moveColor + ' is in checkmate.'
+        status = 'Game over, ' + moveColor + ' checkmate.'
     }
 
     // draw?
     else if (game.in_draw()) {
-        status = 'Game over, drawn position'
+        status = 'Game over, drawn'
     }
 
     // game still on
@@ -92,7 +92,7 @@ function updateStatus () {
 
         // check?
         if (game.in_check()) {
-        status += ', ' + moveColor + ' is in check'
+        status += ', ' + moveColor + ' check'
         }
     }
 
