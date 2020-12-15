@@ -9,6 +9,32 @@ onmessage = function(e) {
     postMessage([game.fen(), count]);
 }
 
+const SCORE_TYPES = {
+    EXACT: 'exact',
+    UPPERBOUND: 'upperbound',
+    LOWERBOUND: 'lowerbound',
+}
+
+const TTable = {};
+
+function TTableGetEntry(key) {
+    return TTable[key] || null;
+}
+
+function determineScoreType(score, alpha, beta) {
+    if (score <= alpha) return SCORE_TYPES.UPPERBOUND;
+    else if (score >= beta) return SCORE_TYPES.LOWERBOUND;
+    else return SCORE_TYPES.EXACT;
+}
+
+function TTableStoreEntry(score, bestMove, alpha, beta, depth, key) {
+    TTable[key] = {
+        score, bestMove,
+        type: determineScoreType(score, alpha, beta),
+        depth, key
+    };
+}
+
 // fungsi untuk menghitung nilai material pada papan catur
 function evaluateScore(board) {
 
@@ -123,6 +149,7 @@ function evaluateScore(board) {
 
 function negamax(chess, alpha, beta, depth) {
     count++;
+
     if (depth === 0 || chess.moves() === null) return evaluateScore(chess.board());
 
     const moves = chess.moves({ verbose: true });
@@ -145,6 +172,50 @@ function negamax(chess, alpha, beta, depth) {
     return bestScore;
 }
 
+function negamaxWithTranspositionTable(chess, alpha, beta, depth) {
+    count++;
+
+    const prevAlpha = alpha;
+    const currentFen = chess.fen();
+    const entry = TTableGetEntry(currentFen);
+    if (entry && entry.depth >= depth) {
+        switch(entry.type) {
+            case SCORE_TYPES.EXACT:
+                return entry.score;
+            case SCORE_TYPES.LOWERBOUND:
+                alpha = Math.max(alpha, entry.score);
+                break;
+            case SCORE_TYPES.UPPERBOUND:
+                beta = Math.min(beta, entry.score);
+                break;
+        }
+        if (alpha >= beta) return entry.score;
+    }
+
+    if (depth === 0 || chess.moves() === null) return evaluateScore(chess.board());
+
+    const moves = chess.moves({ verbose: true });
+    var bestScore = -Infinity;
+    var bestMove = null;
+
+    var i = 0;
+    var nmoves = moves.length;
+    for (; i < nmoves; i++) {
+        chess.move(moves[i]);
+        var score = -negamax(chess, -beta, -alpha, depth - 1);
+        chess.undo();
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = moves[i];
+            if (bestScore >= beta) break;
+            if (bestScore > alpha) alpha = bestScore;
+        }
+    }
+
+    TTableStoreEntry(bestScore, bestMove, prevAlpha, beta, depth, currentFen);
+    return bestScore;
+}
+
 function negamaxRoot(chess, depth) {
     count = 0;
     var moves = chess.moves({ verbose: true });
@@ -162,11 +233,20 @@ function negamaxRoot(chess, depth) {
             bestMove = moves[i];
         }
     }
-    return [bestMove, bestScore];
+    return bestMove;
+}
+
+function negamax2root(chess, depth) {
+    count = 0;
+    negamaxWithTranspositionTable(chess, -Infinity, Infinity, depth);
+
+    const currentFen = chess.fen();
+    const currNode = TTableGetEntry(currentFen);
+    return currNode.bestMove;
 }
 
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var [move, score] = negamaxRoot(game, 2);
+    var move = negamax2root(game, 3);
     game.move(move); // menggerakkan AI
 }
