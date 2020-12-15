@@ -147,7 +147,7 @@ function negamax(chess, alpha, beta, depth) {
 
 function negamaxRoot(chess, depth) {
     count = 0;
-    const moves = chess.moves({ verbose: true });
+    var moves = chess.moves({ verbose: true });
     var bestScore = -Infinity;
     var bestMove = null;
 
@@ -162,11 +162,11 @@ function negamaxRoot(chess, depth) {
             bestMove = moves[i];
         }
     }
-    return bestMove;
+    return [bestMove, bestScore];
 }
 
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var move = negamaxRoot(game, 2);
+    var [move, score] = negamaxRoot(game, 2);
     game.move(move); // menggerakkan AI
 }

@@ -1,18 +1,39 @@
 var board = null
+var oldgame;
 var game = new Chess()
 var $status = $('#status')
 
-var Engine = new Worker('js/worker.js');
+var Engine = undefined;
 var start;
 var end;
+var total_time = 0;
+var index = 0;
 
-Engine.onmessage = function(e) {
-    end = Date.now();
-    game = new Chess(e.data[0]);
-    board.position(e.data[0]);
-    updateStatus();
-    $('#execution').text(e.data[1]);
-    $('#time').text((end - start) / 1000 + ' s');
+function startEngine(push = true) {
+    if (typeof(Worker) !== 'undefined') {
+        if (typeof(Engine) == 'undefined') {
+            Engine = new Worker('js/chess_ai_worker.js');
+        }
+        Engine.onmessage = function(e) {
+            end = Date.now();
+            oldgame = game;
+            game = new Chess(e.data[0]);
+            board.position(e.data[0]);
+            updateStatus();
+            $('#execution').text(e.data[1]);
+            total_time += ((end - start) / 1000).toFixed(2);
+            $('#time').text(((end - start) / 1000).toFixed(2) + ' s');
+            index++;
+            $('#mean').text(total_time / index + ' s');
+        };
+    }
+    start = Date.now();
+    if (push) Engine.postMessage([game.fen()]);
+}
+
+function stopEngine() {
+    Engine.terminate();
+    Engine = undefined;
 }
 
 function onDragStart (source, piece, position, orientation) {
@@ -36,8 +57,9 @@ function onDrop (source, target) {
     if (move === null) return 'snapback'
 
     updateStatus();
-    start = Date.now();
-    Engine.postMessage([game.fen()]);
+    //start = Date.now();
+    startEngine();
+    //Engine.postMessage([game.fen()]);
 }
 
 // update the board position after the piece snap
