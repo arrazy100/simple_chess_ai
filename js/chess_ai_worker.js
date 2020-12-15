@@ -1,3 +1,14 @@
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js");
+
+var game;
+var count;
+
+onmessage = function(e) {
+    game = new Chess(e.data[0]);
+    moveAI();
+    postMessage([game.fen(), count]);
+}
+
 // fungsi untuk menghitung nilai material pada papan catur
 function evaluateScore(board) {
 
@@ -134,7 +145,6 @@ function negamax(chess, alpha, beta, depth) {
     return bestScore;
 }
 
-var count;
 function negamaxRoot(chess, depth) {
     count = 0;
     const moves = chess.moves({ verbose: true });
@@ -157,12 +167,6 @@ function negamaxRoot(chess, depth) {
 
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var start = Date.now();
     var move = negamaxRoot(game, 2);
-    var end = Date.now();
     game.move(move); // menggerakkan AI
-    board.position(game.fen()); // perbarui tampilan papan catur
-    updateStatus(); // update status papan catur
-    $("#execution").text(count);
-    $("#time").text((end - start) / 1000 + " seconds");
 }
