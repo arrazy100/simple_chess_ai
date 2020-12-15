@@ -24,7 +24,7 @@ function startEngine(push = true) {
             total_time += Math.round((end - start) / 10) / 100;
             $('#time').text(Math.round((end - start) / 10) / 100 + ' s');
             index++;
-            $('#mean').text(total_time / index + ' s');
+            $('#mean').text(Math.round(total_time / index * 100) / 100 + ' s');
         };
     }
     start = Date.now();
