@@ -2,11 +2,12 @@ importScripts("https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.
 
 var game;
 var count;
+var best;
 
 onmessage = function(e) {
     game = new Chess(e.data[0]);
     moveAI();
-    postMessage([game.fen(), count]);
+    postMessage([game.fen(), count, best.color]);
 }
 
 const SCORE_TYPES = {
@@ -242,6 +243,7 @@ function negamax2root(chess, depth) {
 
     const currentFen = chess.fen();
     const currNode = TTableGetEntry(currentFen);
+    best = currNode.bestMove;
     return currNode.bestMove;
 }
 
