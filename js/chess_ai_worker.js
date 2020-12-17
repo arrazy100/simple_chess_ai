@@ -2,12 +2,11 @@ importScripts("https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.
 
 var game;
 var count;
-var best;
 
 onmessage = function(e) {
     game = new Chess(e.data[0]);
     moveAI();
-    postMessage([game.fen(), count, best.color]);
+    postMessage([game.fen(), count]);
 }
 
 const SCORE_TYPES = {
@@ -173,11 +172,29 @@ function negamax(chess, alpha, beta, depth) {
     return bestScore;
 }
 
+function quiesce(chess, alpha, beta) {
+    var stand_pat = evaluateScore(chess.board());
+    if (stand_pat >= beta) return beta;
+    if (alpha < stand_pat) alpha = stand_pat;
+
+    var moves = chess.moves({ verbose: true });
+    for (var i = 0; i < moves.length; i++) {
+        if (moves[i].flags !== 'c' || moves[i].flags !== 'e') continue;
+        chess.move(moves[i]);
+        var score = -quiesce(chess, -beta, -alpha);
+        chess.undo();
+        if (score >= beta) return beta;
+        if (score > alpha) alpha = score;
+    }
+
+    return alpha;
+}
+
 function negamaxWithTranspositionTable(chess, alpha, beta, depth) {
     count++;
 
     const prevAlpha = alpha;
-    const currentFen = chess.fen();
+    var currentFen = chess.fen();
     const entry = TTableGetEntry(currentFen);
     if (entry && entry.depth >= depth) {
         switch(entry.type) {
@@ -193,7 +210,7 @@ function negamaxWithTranspositionTable(chess, alpha, beta, depth) {
         if (alpha >= beta) return entry.score;
     }
 
-    if (depth === 0 || chess.moves() === null) return evaluateScore(chess.board());
+    if (depth === 0 || chess.moves() === null) return quiesce(chess.board(), alpha, beta);
 
     const moves = chess.moves({ verbose: true });
     var bestScore = -Infinity;
@@ -208,11 +225,12 @@ function negamaxWithTranspositionTable(chess, alpha, beta, depth) {
         if (score > bestScore) {
             bestScore = score;
             bestMove = moves[i];
-            if (bestScore >= beta) break;
-            if (bestScore > alpha) alpha = bestScore;
         }
+        alpha = Math.max(alpha, bestScore);
+        if (alpha >= beta) break;
     }
 
+    currentFen = chess.fen();
     TTableStoreEntry(bestScore, bestMove, prevAlpha, beta, depth, currentFen);
     return bestScore;
 }
@@ -249,6 +267,6 @@ function negamax2root(chess, depth) {
 
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var move = negamax2root(game, 3);
+    var move = negamax2root(game, 2);
     game.move(move); // menggerakkan AI
 }

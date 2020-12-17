@@ -1,5 +1,4 @@
 var board = null
-var oldgame;
 var game = new Chess()
 var $status = $('#status')
 
@@ -16,16 +15,14 @@ function startEngine(push = true) {
         }
         Engine.onmessage = function(e) {
             end = Date.now();
-            oldgame = game;
             game = new Chess(e.data[0]);
             board.position(e.data[0]);
-            updateStatus();
             $('#execution').text(e.data[1]);
             total_time += Math.round((end - start) / 10) / 100;
             $('#time').text(Math.round((end - start) / 10) / 100 + ' s');
             index++;
             $('#mean').text(Math.round(total_time / index * 100) / 100 + ' s');
-            console.log(e.data[2]);
+            updateStatus();
         };
     }
     start = Date.now();
@@ -58,9 +55,7 @@ function onDrop (source, target) {
     if (move === null) return 'snapback'
 
     updateStatus();
-    //start = Date.now();
     startEngine();
-    //Engine.postMessage([game.fen()]);
 }
 
 // update the board position after the piece snap

@@ -1,3 +1,48 @@
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js");
+importScripts("./zobrist_hash.js");
+
+var game;
+var count;
+
+onmessage = function(e) {
+    game = new Chess(e.data[0]);
+    moveAI();
+    postMessage([game.fen(), count]);
+}
+
+const SCORE_TYPES = {
+    EXACT: 'exact',
+    UPPERBOUND: 'upperbound',
+    LOWERBOUND: 'lowerbound',
+}
+
+//const TTable = {};
+ZobristInit();
+
+function TTableGetEntry(key) {
+    return g_hashTable[key] || null;
+}
+
+function determineScoreType(score, alpha, beta) {
+    if (score <= alpha) return SCORE_TYPES.UPPERBOUND;
+    else if (score >= beta) return SCORE_TYPES.LOWERBOUND;
+    else return SCORE_TYPES.EXACT;
+}
+
+function TTableStoreEntry(key, lock, score, bestMove, alpha, beta, depth) {
+    
+    var newHash = {};
+    newHash.type = determineScoreType(score, alpha, beta);
+    newHash.lock = lock;
+    newHash.score = score;
+    newHash.bestMove = bestMove;
+    newHash.alpha = alpha;
+    newHash.beta = beta;
+    newHash.depth = depth;
+    
+    g_hashTable[key] = newHash;
+}
+
 // fungsi untuk menghitung nilai material pada papan catur
 function evaluateScore(board) {
 
@@ -112,6 +157,7 @@ function evaluateScore(board) {
 
 function negamax(chess, alpha, beta, depth) {
     count++;
+
     if (depth === 0 || chess.moves() === null) return evaluateScore(chess.board());
 
     const moves = chess.moves({ verbose: true });
@@ -134,10 +180,57 @@ function negamax(chess, alpha, beta, depth) {
     return bestScore;
 }
 
-var count;
+function negamaxWithTranspositionTable(chess, alpha, beta, depth) {
+    count++;
+
+    const prevAlpha = alpha;
+    //const currentFen = chess.fen();
+    var hash = ZobristHash(chess.board(), chess.turn());
+    const entry = TTableGetEntry(hash.hashKeyLow & g_hashMask);
+    if (entry && entry.depth >= depth && entry.lock == hash.hashKeyHigh) {
+        switch(entry.type) {
+            case SCORE_TYPES.EXACT:
+                return entry.score;
+            case SCORE_TYPES.LOWERBOUND:
+                alpha = Math.max(alpha, entry.score);
+                break;
+            case SCORE_TYPES.UPPERBOUND:
+                beta = Math.min(beta, entry.score);
+                break;
+        }
+        if (alpha >= beta) return entry.score;
+    }
+
+    if (depth === 0 || chess.moves() === null) return evaluateScore(chess.board());
+
+    const moves = chess.moves({ verbose: true });
+    var bestScore = -Infinity;
+    var bestMove = null;
+
+    var i = 0;
+    var nmoves = moves.length;
+    for (; i < nmoves; i++) {
+        chess.move(moves[i]);
+        var score = -negamaxWithTranspositionTable(chess, -beta, -alpha, depth - 1);
+        chess.undo();
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = moves[i];
+        }
+        alpha = Math.max(alpha, bestScore);
+        if (alpha >= beta) break;
+    }
+
+    hash = ZobristHash(game.board(), game.turn());
+    g_hashKeyLow = hash.hashKeyLow;
+    g_hashKeyHigh = hash.hashKeyHigh;
+    TTableStoreEntry(g_hashKeyLow & g_hashMask, g_hashKeyHigh, bestScore, bestMove, prevAlpha, beta, depth);
+    return bestScore;
+}
+
 function negamaxRoot(chess, depth) {
     count = 0;
-    const moves = chess.moves({ verbose: true });
+    var moves = chess.moves({ verbose: true });
     var bestScore = -Infinity;
     var bestMove = null;
 
@@ -155,14 +248,20 @@ function negamaxRoot(chess, depth) {
     return bestMove;
 }
 
+function negamax2root(chess, depth) {
+    count = 0;
+    negamaxWithTranspositionTable(chess, -Infinity, Infinity, depth);
+
+    const hash = ZobristHash(game.board(), game.turn());
+    g_hashKeyLow = hash.hashKeyLow;
+    g_hashKeyHigh = hash.hashKeyHigh;
+
+    const currNode = TTableGetEntry(g_hashKeyLow & g_hashMask);
+    return currNode.bestMove;
+}
+
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var start = Date.now();
-    var move = negamaxRoot(game, 2);
-    var end = Date.now();
+    var move = negamax2root(game, 3);
     game.move(move); // menggerakkan AI
-    board.position(game.fen()); // perbarui tampilan papan catur
-    updateStatus(); // update status papan catur
-    $("#execution").text(count);
-    $("#time").text((end - start) / 1000 + " seconds");
 }
