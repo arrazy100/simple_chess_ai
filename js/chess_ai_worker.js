@@ -267,6 +267,6 @@ function negamax2root(chess, depth) {
 
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var move = negamax2root(game, 2);
+    var move = negamax2root(game, 3);
     game.move(move); // menggerakkan AI
 }
