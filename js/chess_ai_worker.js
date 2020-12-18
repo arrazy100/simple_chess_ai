@@ -36,7 +36,7 @@ function TTableStoreEntry(score, bestMove, alpha, beta, depth, key) {
 }
 
 // fungsi untuk menghitung nilai material pada papan catur
-function evaluateScore(board) {
+function evaluateScore(board, turn) {
 
     // nilai untuk semua jenis pion catur, diambil dari https://www.chessprogramming.org/Point_Value
     const pawn = 100;
@@ -143,8 +143,10 @@ function evaluateScore(board) {
             }
         }
     }
+    var color;
+    (turn === 'w') ? color = 1 : color = -1;
 
-    return white - black;
+    return (white - black) * color;
 }
 
 function negamax(chess, alpha, beta, depth) {
@@ -173,7 +175,7 @@ function negamax(chess, alpha, beta, depth) {
 }
 
 function quiesce(chess, alpha, beta) {
-    var stand_pat = evaluateScore(chess.board());
+    var stand_pat = evaluateScore(chess.board(), chess.turn());
     if (stand_pat >= beta) return beta;
     if (alpha < stand_pat) alpha = stand_pat;
 
@@ -210,7 +212,7 @@ function negamaxWithTranspositionTable(chess, alpha, beta, depth) {
         if (alpha >= beta) return entry.score;
     }
 
-    if (depth === 0 || chess.moves() === null) return quiesce(chess.board(), alpha, beta);
+    if (depth === 0 || chess.moves() === null) return quiesce(chess, alpha, beta);
 
     const moves = chess.moves({ verbose: true });
     var bestScore = -Infinity;
@@ -220,7 +222,7 @@ function negamaxWithTranspositionTable(chess, alpha, beta, depth) {
     var nmoves = moves.length;
     for (; i < nmoves; i++) {
         chess.move(moves[i]);
-        var score = -negamax(chess, -beta, -alpha, depth - 1);
+        var score = -negamaxWithTranspositionTable(chess, -beta, -alpha, depth - 1);
         chess.undo();
         if (score > bestScore) {
             bestScore = score;
@@ -267,6 +269,6 @@ function negamax2root(chess, depth) {
 
 // fungsi untuk menggerakkan AI
 function moveAI() {
-    var move = negamax2root(game, 3);
+    var move = negamax2root(game, 2);
     game.move(move); // menggerakkan AI
 }
