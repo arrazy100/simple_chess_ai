@@ -20,7 +20,7 @@ onmessage = function(e) {
 // implementasi fungsi untuk menggerakkan AI berdasarkan pencarian
 function moveAI() {
     // dapatkan gerakan terbaik
-    var move = getBestMove(game, 4);
+    var move = getBestMove(game, 3);
 
     // gerakkan AI
     game.move(move);
