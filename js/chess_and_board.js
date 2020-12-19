@@ -1,5 +1,5 @@
 var board = null
-var game = new Chess()
+var game = new Chess('3r2kr/pppN2q1/4QR2/4P1N1/3p3p/8/PP4PP/R1B3K1 b - - 0 1')
 var $status = $('#status')
 
 var Engine = undefined;
@@ -8,7 +8,9 @@ var end;
 var total_time = 0;
 var index = 0;
 
-function startEngine(push = true) {
+startEngine(true, 'medium');
+
+function startEngine(push = true, difficulty = 'easy') {
     if (typeof(Worker) !== 'undefined') {
         if (typeof(Engine) == 'undefined') {
             Engine = new Worker('js/chess_ai_worker.js');
@@ -22,11 +24,12 @@ function startEngine(push = true) {
             $('#time').text(Math.round((end - start) / 10) / 100 + ' s');
             index++;
             $('#mean').text(Math.round(total_time / index * 100) / 100 + ' s');
+            console.log(e.data[2]);
             updateStatus();
         };
     }
     start = Date.now();
-    if (push) Engine.postMessage([game.fen()]);
+    if (push) Engine.postMessage([game.fen(), difficulty]);
 }
 
 function stopEngine() {
@@ -55,7 +58,7 @@ function onDrop (source, target) {
     if (move === null) return 'snapback'
 
     updateStatus();
-    startEngine();
+    startEngine(true, difficulty);
 }
 
 // update the board position after the piece snap

@@ -1,7 +1,23 @@
+var difficulty;
+
 function resetBoard() {
     stopEngine();
     game.reset()
     startEngine(false);
     board.position(game.fen())
     updateStatus()
+}
+
+function detectMob() {
+    return ((window.innerWidth <= 800) && (window.innerHeight <= 600));
+}
+
+function playGame(level) {
+    difficulty = level;
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("game_screen").style.display = "inline-block";
+    if (detectMob()) $("#game_screen").width($(window).width());
+    else $("#game_screen").width(500);
+    board = Chessboard('myBoard', config);
+    board.position(game.fen());
 }

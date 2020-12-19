@@ -1,3 +1,0 @@
-- Hash key
-- Improve Evaluation
-- Move Ordering based of Evaluation

@@ -14,16 +14,37 @@
       <style>
         body { margin: 0; height: 100%; overflow-y: hidden; }
         #myBoard { touch-action: none; }
-        #status, #execution, #time, #mean { color: green; }
+        #myboard span { color: white; }
+        #status, #execution, #time, #mean { color: blanchedalmond; }
+
+        #menu b { color: white; margin-left: 20px; }
+        #menu p { color: white; margin-left: 20px; }
+        #menu a { text-decoration: none; color: greenyellow; }
+        #menu a:hover { color: yellow; }
+        #menu button { margin-left: 20px; }
       </style>
 </head>
-<body>
-    <div id="myBoard" style="width: 100%"></div>
-    <button onclick="resetBoard();">Reset</button>
-    <span style="float: right; margin-top: 5px;">Status: <span id="status"></span></span><br>
-    <span>Execution: <span id="execution"></span></span><br>
-    <span>Time elapsed: <span id="time"></span></span><br>
-    <span>Mean time: <span id="mean"></span></span>
+<body style="background-color: cadetblue;">
+    <div id="menu" style="width: 100%; height: 50%;">
+        <h3 style="color: white; text-align: center; margin-bottom: 50px;">Simple Chess AI</h3>
+        <b>Choose AI Difficulty</b><br><br>
+        <button onclick="playGame('easy');">Easy</button>
+        <button onclick="playGame('medium');">Medium</button>
+        <button onclick="playGame('hard');">Hard</button><br><br>
+        <b>Credits</b>
+        <p>Chess Engine: <a href="https://github.com/jhlywa/chess.js/">Chess.js</a></p>
+        <p>Chess UI: <a href="https://chessboardjs.com/">Chessboard.js</a></p>
+        <p>Chess AI: <a href="https://github.com/arrazy100/simple_chess_ai/">Source Code</a></p>
+        <p>Knowledge Reference: <a href="https://www.chessprogramming.org/Main_Page">Chess Programming</a></p>
+    </div>
+    <div id="game_screen" style="display: none;">
+        <div id="myBoard" style="width: 100%;"></div>
+        <button onclick="resetBoard();">Reset</button>
+        <span style="float: right; margin-top: 5px;">Status: <span id="status"></span></span><br>
+        <span>Execution: <span id="execution"></span></span><br>
+        <span>Time elapsed: <span id="time"></span></span><br>
+        <span>Mean time: <span id="mean"></span></span>
+    </div>
 </body>
 
 <!-- JQuery -->
@@ -41,12 +62,12 @@
     crossorigin="anonymous">
 </script>
 
-<script src="js/chess_ai_worker.js" type="module"></script>
-
 <!-- Integrate Chess Engine and Chessboard Plugin -->
-<script src="js/chess_and_board_worker.js"></script>
+<script src="js/chess_and_board.js"></script>
 
 <!-- Button Interactions -->
 <script src="js/chess_buttons.js"></script>
+
+<script src="js/chess_ai_worker.js" type="module"></script>
 
 </html>

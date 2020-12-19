@@ -26,21 +26,18 @@ function negamax(chess, alpha, beta, depth) {
         // menghitung skor gerakan ke-i
         var score = -negamax(chess, -beta, -alpha, depth - 1);
 
-        // jika skor dari gerakan ke-i lebih dari skor terbaik sekarang
-        // jadikan skor dari gerakan ke-i menjadi skor terbaik
-        if (score > bestScore) {
-            bestScore = score;
-        }
-
-        // mengganti nilai alpha jika skor terbaik > alpha
-        alpha = Math.max(alpha, bestScore);
-
-        // kembalikan posisi catur seperti semula
+        // kembalikan posisi papan catur seperti semula
         chess.undo();
 
-        // jika alpha >= beta kembalikan nilai alpha sebagai hasil pencarian
-        if (alpha >= beta) {
-            return alpha;
+        // jika skor >= beta maka kembalikan skor sebagai hasil pencarian
+        if (score >= beta) return score;
+
+        // jika skor dari gerakan ke-i lebih dari skor terbaik sekarang
+        // jadikan skor dari gerakan ke-i menjadi skor terbaik
+        // mengganti nilai alpha menjadi skor terbaik jika skor terbaik > alpha
+        if (score > bestScore) {
+            bestScore = score;
+            alpha = Math.max(alpha, bestScore);
         }
     }
 
@@ -159,7 +156,7 @@ function search(chess, alpha, beta, depth) {
             bestMove = moves[i];
         }
 
-        // ubah nilai alpha apabila skor terbaik > alpha
+        // ubah nilai alpha menjadi skor terbaik apabila skor terbaik > alpha
         alpha = Math.max(alpha, bestScore);
 
         // jika alpha >= beta, keluar dari perulangan
@@ -228,6 +225,8 @@ function getBestMove(chess, depth) {
 
     // mendapatkan data tabel transposisi dengan kuncinya adalah notasi fen
     const currNode = TTableGetEntry(currentFen);
+
+    if (currNode.bestMove === null) return negamax_root(game, 1);
 
     // mengembalikan gerakan terbaik berdasarkan data tabel transposisi yang didapatkan
     return currNode.bestMove;
