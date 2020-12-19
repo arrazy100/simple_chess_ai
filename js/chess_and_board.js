@@ -1,14 +1,12 @@
-var board = null
-var game = new Chess('3r2kr/pppN2q1/4QR2/4P1N1/3p3p/8/PP4PP/R1B3K1 b - - 0 1')
-var $status = $('#status')
+var board = null;
+var game = new Chess();
+var $status = $('#status');
 
 var Engine = undefined;
 var start;
 var end;
 var total_time = 0;
 var index = 0;
-
-startEngine(true, 'medium');
 
 function startEngine(push = true, difficulty = 'easy') {
     if (typeof(Worker) !== 'undefined') {
