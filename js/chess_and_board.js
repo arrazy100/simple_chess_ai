@@ -83,6 +83,16 @@ function updateStatus () {
         status = 'Game over, drawn'
     }
 
+    // threefold repetition?
+    else if (game.in_threefold_repetition()) {
+        status = 'Game over, threefold repetition'
+    }
+
+    // stalemate?
+    else if (game.in_stalemate()) {
+        status = 'Game over, stalemate'
+    }
+
     // game still on
     else {
         status = moveColor + ' to move'

@@ -1,12 +1,23 @@
 var count;
 
+function shuffle(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        var j = i + Math.floor(Math.random() * (arr.length - i));
+        var temp = arr[j];
+        arr[j] = arr[i];
+        arr[i] = temp;
+    }
+
+    return arr;
+}
+
 // implementasi pencarian negamax dengan alpha beta pruning
 function negamax(chess, alpha, beta, depth) {
     count++;
 
     // jika pohon pencarian sudah berada di akar atau tidak ada gerakan catur yang legal,
     // kembalikan nilai dari papan catur sekarang
-    if (depth === 0 || chess.moves() === null) return evaluateScore(chess.board(), chess.turn());
+    if (depth === 0 || chess.moves() === null) return evaluateScore(chess, chess.turn());
 
     // dapatkan gerakan catur yang legal
     const moves = chess.moves({ verbose: true });
@@ -49,7 +60,7 @@ function negamax(chess, alpha, beta, depth) {
 function quiesce(chess, alpha, beta) {
 
     // menyimpan skor posisi papan catur sekarang
-    var stand_pat = evaluateScore(chess.board(), chess.turn());
+    var stand_pat = evaluateScore(chess, chess.turn());
 
     // jika skor >= beta, kembalikan nilai beta sebagai hasil pencarian
     if (stand_pat >= beta) return beta;
@@ -127,7 +138,7 @@ function search(chess, alpha, beta, depth) {
     if (depth === 0 || chess.moves() === null) return quiesce(chess, alpha, beta);
 
     // mendapatkan semua gerakan yang legal
-    const moves = chess.moves({ verbose: true });
+    const moves = shuffle(chess.moves({ verbose: true }));
 
     // menyimpan skor terbaik, inisialisasi dengan nilai terendah
     var bestScore = -Infinity;

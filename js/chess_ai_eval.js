@@ -1,5 +1,18 @@
 // implementasi fungsi untuk mendapatkan skor berdasarkan posisi pada papan catur yang diinputkan
-function evaluateScore(board, turn) {
+function evaluateScore(chess, turn) {
+    // mendapatkan papan catur dari engine
+    var board = chess.board();
+
+    // mendapatkan giliran pemain, jika giliran catur putih, color = 1, sebaliknya, color = -1
+    var color;
+    (turn === 'w') ? color = 1 : color = -1;
+
+    if (chess.in_threefold_repetition() || chess.in_draw() || chess.in_stalemate()) {
+        return 0;
+    }
+    else if (chess.in_checkmate()) {
+        return 99999 * color;
+    }
 
     // nilai material untuk semua jenis catur, diambil dari https://www.chessprogramming.org/Point_Value
     const pawn = 100;
@@ -230,10 +243,6 @@ function evaluateScore(board, turn) {
     if ((board[1][3] != null && board[1][3].type === 'p') || (board[1][4] != null && board[1][4].type === 'p')) {
         if (board[2][3] != null || board[2][4] != null) b_bonus -= 50;
     }
-
-    // mendapatkan giliran pemain, jika giliran catur putih, color = 1, sebaliknya, color = -1
-    var color;
-    (turn === 'w') ? color = 1 : color = -1;
 
     // dapatkan skor dari penambahan nilai material, posisi, dan bonus dari kedua pemain
     var score = (w_material + w_position + w_bonus) - (b_material + b_position + b_bonus);
